@@ -1,6 +1,6 @@
 const express = require("express");
+const { Department } = require("../models/universal.models");
 const router = express.Router();
-const ObjectId = require("mongodb").ObjectId;
 
 router.get("/departments", (req, res) => {
   req.db
@@ -22,49 +22,61 @@ router.get("/departments/random", (req, res) => {
     });
 });
 
-router.get("/departments/:id", (req, res) => {
-  req.db
-    .collection("departments")
-    .findOne({ _id: ObjectId(req.params.id) }, (err, data) => {
-      if (err) res.status(500).json({ message: "Not found in database" });
-      else res.json(data);
-    });
+router.get("/departments/:id", async (req, res) => {
+  try {
+    const dep = await Department.findById(req.params.id);
+    if (!dep) res.status(404).json({ message: "Not found" });
+    else res.json(dep);
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.post("/departments", (req, res) => {
+router.post("/departments", async (req, res) => {
+  try {
+    const { name } = req.body;
+    const newDepartment = new Department({ name });
+    await newDepartment.save();
+    res.json({ message: newDepartment });
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
+});
+
+router.put("/departments/:id", async (req, res) => {
   const { name } = req.body;
-  req.db.collection("departments").insertOne({ name }, (err, data) => {
-    if (err) res.status(500).json({ message: "Data not insterted" });
-    else {
-      console.log("Succes! :", data.ops);
-      res.json({ message: "OK" });
+
+  try {
+    const dep = async () => {
+      let x = await Department.findById(req.params.id);
+      return x;
+    };
+
+    const depFromDb = await dep();
+    if (depFromDb) {
+      await Department.updateOne(depFromDb, {
+        $set: { name },
+      });
+      res.json({
+        message1: await dep(),
+      });
+    } else {
+      res.status(404).json({ message: "Record not foundd in DB" });
     }
-  });
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.put("/departments/:id", (req, res) => {
-  const { name } = req.body;
-  req.db
-    .collection("departments")
-    .updateOne(
-      { _id: ObjectId(req.params.id) },
-      { $set: { name } },
-      (err, data) => {
-        if (err) res.status(500).json({ message: "Data not updated" });
-        else {
-          console.log("Succes! :", data.ops);
-          res.json({ message: "Editing OK" });
-        }
-      }
-    );
-});
-
-router.delete("/departments/:id", (req, res) => {
+router.delete("/departments/:id", async (req, res) => {
   const id = req.params.id;
-  req.db.collection("departments").deleteOne({ _id: ObjectId(id) }, (err) => {
-    if (err) res.status(500).json({ message: "Data not removed" });
-    else res.json({ message: "Removal ok" });
-  });
+  try {
+    let dep = await Department.findByIdAndDelete({ _id: id });
+    res.json({ message: ("OK", dep) });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: ("error: ", err) });
+  }
 });
 
 module.exports = router;

@@ -1,8 +1,6 @@
-// post.routes.js
-
 const express = require("express");
 const router = express.Router();
-const ObjectId = require("mongodb").ObjectId;
+const { Product } = require("../models/universal.models");
 
 router.get("/products", (req, res) => {
   req.db
@@ -24,49 +22,61 @@ router.get("/products/random", (req, res) => {
     });
 });
 
-router.get("/products/:id", (req, res) => {
-  req.db
-    .collection("products")
-    .findOne({ _id: ObjectId(req.params.id) }, (err, data) => {
-      if (err) res.status(500).json({ message: "Not found in database" });
-      else res.json(data);
-    });
+router.get("/products/:id", async (req, res) => {
+  try {
+    const dep = await Product.findById(req.params.id);
+    if (!dep) res.status(404).json({ message: "Not found" });
+    else res.json(dep);
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.post("/products", (req, res) => {
+router.post("/products", async (req, res) => {
+  try {
+    const { name, client } = req.body;
+    const newProduct = new Product({ name, client });
+    await newProduct.save();
+    res.json({ message: "OK" });
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
+});
+
+router.put("/products/:id", async (req, res) => {
   const { name, client } = req.body;
-  req.db.collection("products").insertOne({ name, client }, (err, data) => {
-    if (err) res.status(500).json({ message: "Data not insterted" });
-    else {
-      console.log("Succes! :", data.ops);
-      res.json({ message: "OK" });
+  try {
+    const dep = async () => {
+      let x = await Product.findById(req.params.id);
+      return x;
+    };
+
+    const depFromDb = await dep();
+    console.log(depFromDb);
+    if (depFromDb) {
+      await Product.updateOne(depFromDb, {
+        $set: { name, client },
+      });
+      res.json({
+        message1: await dep(),
+      });
+    } else {
+      res.status(404).json({ message: "Record not foundd in DB" });
     }
-  });
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 });
 
-router.put("/products/:id", (req, res) => {
-  const { name, client } = req.body;
-  req.db
-    .collection("products")
-    .updateOne(
-      { _id: ObjectId(req.params.id) },
-      { $set: { name, client } },
-      (err, data) => {
-        if (err) res.status(500).json({ message: "Data not updated" });
-        else {
-          console.log("Succes! :", data.ops);
-          res.json({ message: "Editing OK" });
-        }
-      }
-    );
-});
-
-router.delete("/products/:id", (req, res) => {
+router.delete("/products/:id", async (req, res) => {
   const id = req.params.id;
-  req.db.collection("products").deleteOne({ _id: ObjectId(id) }, (err) => {
-    if (err) res.status(500).json({ message: "Data not removed" });
-    else res.json({ message: "Removal ok" });
-  });
+  try {
+    let dep = await Product.findByIdAndDelete({ _id: id });
+    res.json({ message: ("OK", dep) });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: ("error: ", err) });
+  }
 });
 
 module.exports = router;
