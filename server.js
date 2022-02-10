@@ -20,10 +20,13 @@ app.use("/api", employeesRoutes);
 app.use("/api", departmentsRoutes);
 app.use("/api", productsRoutes);
 
-mongoose.connect("mongodb://localhost:27017/companyDB", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(
+  "mongodb+srv://przemo41:maslo123@cluster1.oavbq.mongodb.net/Cluster1?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+);
 const db = mongoose.connection;
 
 db.once("open", () => {
