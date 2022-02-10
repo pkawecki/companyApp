@@ -12,9 +12,9 @@ app.use((req, res, next) => {
   next();
 });
 
-const employeesRoutes = require("./routes/employees.routes");
-const departmentsRoutes = require("./routes/departments.routes");
-const productsRoutes = require("./routes/products.routes");
+const employeesRoutes = require("./routes/employee/employees.routes");
+const departmentsRoutes = require("./routes/department/departments.routes");
+const productsRoutes = require("./routes//product/products.routes");
 
 app.use("/api", employeesRoutes);
 app.use("/api", departmentsRoutes);

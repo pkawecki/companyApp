@@ -1,18 +1,17 @@
-const express = require("express");
-const router = express.Router();
-const { Employee } = require("../models/universal.models");
+const { Employee } = require("../../models/universal.models");
 
-router.get("/employees", (req, res) => {
-  req.db
-    .collection("employees")
-    .find()
-    .toArray((err, data) => {
-      if (err) res.status(500).json({ message: err });
-      else res.json(data);
-    });
-});
+exports.getAll = async (req, res) => {
+  try {
+    const emp = await Employee.find().populate("department");
+    if (!emp) res.status(404).json({ message: "Not found any employee" });
+    else res.json(emp);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err });
+  }
+};
 
-router.get("/employees/random", (req, res) => {
+exports.getRandom = (req, res) => {
   req.db
     .collection("employees")
     .aggregate([{ $sample: { size: 1 } }])
@@ -20,9 +19,9 @@ router.get("/employees/random", (req, res) => {
       if (err) res.status(500).json({ message: err });
       else res.json(data);
     });
-});
+};
 
-router.get("/employees/:id", async (req, res) => {
+exports.getById = async (req, res) => {
   try {
     const dep = await Employee.findById(req.params.id);
     if (!dep) res.status(404).json({ message: "Not found" });
@@ -30,22 +29,21 @@ router.get("/employees/:id", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err });
   }
-});
+};
 
-router.post("/employees", async (req, res) => {
+exports.postDoc = async (req, res) => {
   try {
-    const { firstName, lastName } = req.body;
-    const newEmployee = new Employee({ firstName, lastName });
+    const { firstName, lastName, department } = req.body;
+    const newEmployee = new Employee({ firstName, lastName, department });
     await newEmployee.save();
     res.json({ message: ("New Employee added", newEmployee) });
   } catch (err) {
     res.status(500).json({ message: err });
   }
-});
+};
 
-router.put("/employees/:id", async (req, res) => {
-  const { firstName, lastName } = req.body;
-
+exports.putDoc = async (req, res) => {
+  const { firstName, lastName, department } = req.body;
   try {
     const dep = async () => {
       let x = await Employee.findById(req.params.id);
@@ -55,7 +53,7 @@ router.put("/employees/:id", async (req, res) => {
     const depFromDb = await dep();
     if (depFromDb) {
       await Employee.updateOne(depFromDb, {
-        $set: { firstName, lastName },
+        $set: { firstName, lastName, department },
       });
       res.json({
         message1: await dep(),
@@ -66,17 +64,15 @@ router.put("/employees/:id", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err });
   }
-});
+};
 
-router.delete("/employees/:id", async (req, res) => {
+exports.delete = async (req, res) => {
   const id = req.params.id;
   try {
     let dep = await Employee.findByIdAndDelete({ _id: id });
-    res.json({ message: dep });
+    res.json({ message: dep || "Not found" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: ("error: ", err) });
   }
-});
-
-module.exports = router;
+};
