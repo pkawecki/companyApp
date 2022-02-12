@@ -4,13 +4,22 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "test": "set NODE_ENV=test && mocha \"./{models/test/api/departments,!(node_modules)/**/}delete.test.js \" --exclude put.*.js",
+    "test_old_2": "set NODE_ENV=test && mocha \"./{,!(node_modules)/**/}*.test.js \" --exclude **/department*",
+    "test:watch": "onchange \"./**/*.js\" -i -k -- yarn test",
+    "explanation_of_above": "on every change of file process is run and killed",
+    "test_old": "mocha --watch \"./{,!(node_modules)/**/}*.test.js\""
   },
   "dependencies": {
+    "chai": "4.2.0",
+    "chai-http": "^4.3.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "mocha": "6.2.1",
     "mongodb": "3.5.7",
     "mongoose": "^6.2.0",
-    "nodemon": "^1.19.1"
+    "nodemon": "^1.19.1",
+    "onchange": "^7.1.0"
   }
 }

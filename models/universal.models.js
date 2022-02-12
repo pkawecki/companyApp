@@ -11,7 +11,7 @@ const employeeSchema = new mongoose.Schema({
 });
 
 const departmentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, minlength: 5, maxlength: 20 },
 });
 
 const productSchema = new mongoose.Schema({

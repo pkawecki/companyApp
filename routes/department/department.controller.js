@@ -13,7 +13,7 @@ exports.getAll = async (req, res) => {
 
 exports.getRandom = (req, res) => {
   req.db
-    .collection("employees")
+    .collection("departments")
     .aggregate([{ $sample: { size: 1 } }])
     .toArray((err, data) => {
       if (err) res.status(500).json({ message: err });
@@ -36,7 +36,7 @@ exports.postDoc = async (req, res) => {
     const { name } = req.body;
     const newDepartment = new Department({ name });
     await newDepartment.save();
-    res.json({ message: ("New Department added", newDepartment) });
+    res.json({ message: "OK" });
   } catch (err) {
     res.status(500).json({ message: err });
   }
@@ -56,7 +56,7 @@ exports.putDoc = async (req, res) => {
         $set: { name },
       });
       res.json({
-        message1: await dep(),
+        message: "OK",
       });
     } else {
       res.status(404).json({ message: "Record not foundd in DB" });
