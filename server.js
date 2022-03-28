@@ -24,12 +24,15 @@ app.use("/api", productsRoutes);
 
 // MONGOOSE CONNECTION CONFIG
 const NODE_ENV = process.env.NODE_ENV;
+if (NODE_ENV) NODE_ENV.trim();
 let dbUri = "";
 
-if (NODE_ENV === "production")
+if (NODE_ENV === "production") {
   dbUri =
     "mongodb+srv://przemo41:maslo123@cluster1.oavbq.mongodb.net/Cluster1?retryWrites=true";
-else if (NODE_ENV === "test") dbUri = "mongodb://localhost:27017/companyDBtest";
+  console.log("production mode");
+} else if (NODE_ENV === "test")
+  dbUri = "mongodb://localhost:27017/companyDBtest";
 else dbUri = "mongodb://localhost:27017/companyDB";
 
 mongoose.connect(dbUri, {
@@ -40,7 +43,11 @@ const db = mongoose.connection;
 
 // DATABSE CONNECTION LISTENERS
 db.once("open", () => {
-  console.log("Connceted to database");
+  console.log(
+    "Connceted to database in",
+    NODE_ENV == "production" ? "production" : "development",
+    "mode"
+  );
 });
 db.on("error", (err) => console.log("Error: ", err));
 
